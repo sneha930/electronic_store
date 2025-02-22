@@ -2,12 +2,18 @@ package com.lcwd.electronic.store.services.impl;
 
 import com.lcwd.electronic.store.dtos.UserDto;
 import com.lcwd.electronic.store.entities.User;
+import com.lcwd.electronic.store.exceptions.ResourceNotFoundException;
 import com.lcwd.electronic.store.repositories.UserRepository;
 import com.lcwd.electronic.store.services.UserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.lang.module.ResolutionException;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -36,7 +42,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto updateUser(UserDto userDto, String userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found with given id"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found with given id"));
         user.setName(userDto.getName());
         user.setAbout(userDto.getAbout());
         user.setGender(userDto.getGender());
@@ -52,26 +58,31 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteUser(String userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found with given id"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found with given id"));
         userRepository.delete(user);
     }
 
     @Override
-    public List<UserDto> getAllUser() {
-        List<User> users = userRepository.findAll();
+    public List<UserDto> getAllUser(int pageNumber, int pageSize, String sortBy, String sortDir) {
+//        page number default starts from 0
+        Sort sort = (sortDir.equalsIgnoreCase("desc")) ? (Sort.by(sortBy).descending()) : (Sort.by(sortBy).ascending());
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
+        Page<User> page = userRepository.findAll(pageable);
+        List<User> users = page.getContent();
+//        List<User> users = userRepository.findAll();
         List<UserDto> dtoList = users.stream().map(user -> entityToDto(user)).collect(Collectors.toList());
         return dtoList;
     }
 
     @Override
     public UserDto getUserById(String userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found with given id"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found with given id"));
         return entityToDto(user);
     }
 
     @Override
     public UserDto getUserByEmail(String email) {
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found with given email id"));
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found with given email id"));
         return entityToDto(user);
     }
 
