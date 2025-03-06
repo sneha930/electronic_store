@@ -1,7 +1,6 @@
 package com.lcwd.electronic.store.exceptions;
 
 import com.lcwd.electronic.store.dtos.ApiResponseMessage;
-import org.hibernate.annotations.NotFound;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -44,6 +43,15 @@ public class GlobalExceptionHandler {
         });
 
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    // handle bad api request exception
+    @ExceptionHandler(BadApiRequestException.class)
+    public ResponseEntity<ApiResponseMessage> badApiRequestHandler(BadApiRequestException ex) {
+
+        logger.info("Bad Api request");
+        ApiResponseMessage response = ApiResponseMessage.builder().message(ex.getMessage()).status(HttpStatus.BAD_REQUEST).success(false).build();
+        return new ResponseEntity(response, HttpStatus.BAD_REQUEST);
     }
 
 }

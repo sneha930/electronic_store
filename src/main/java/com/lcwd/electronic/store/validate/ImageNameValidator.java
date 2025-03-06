@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
 
-
+//  wo propery kis type ki hai jise aap validate krna chahte ho <name, type>
 public class ImageNameValidator implements ConstraintValidator<ImageNameValid, String> {
 
 

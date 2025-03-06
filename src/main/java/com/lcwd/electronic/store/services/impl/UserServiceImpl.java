@@ -1,8 +1,10 @@
 package com.lcwd.electronic.store.services.impl;
 
+import com.lcwd.electronic.store.dtos.PageableResponse;
 import com.lcwd.electronic.store.dtos.UserDto;
 import com.lcwd.electronic.store.entities.User;
 import com.lcwd.electronic.store.exceptions.ResourceNotFoundException;
+import com.lcwd.electronic.store.helper.Helper;
 import com.lcwd.electronic.store.repositories.UserRepository;
 import com.lcwd.electronic.store.services.UserService;
 import org.modelmapper.ModelMapper;
@@ -63,15 +65,36 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserDto> getAllUser(int pageNumber, int pageSize, String sortBy, String sortDir) {
+    public PageableResponse<UserDto> getAllUser(int pageNumber, int pageSize, String sortBy, String sortDir) {
 //        page number default starts from 0
+
+// sort is a object so we have to make object from class Sort
         Sort sort = (sortDir.equalsIgnoreCase("desc")) ? (Sort.by(sortBy).descending()) : (Sort.by(sortBy).ascending());
+
+        // pageable interface hai to iska object direct bana nahi sakte, to hum iski implementation class use karenge ie.PageRequest aur pass karenge pageNumber, pageSize
+        // of is a method here you can check by clicking
         Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
+
+        // here we have to pass pageable object
+        // ye hame List<user> nahi return karega, ye return karega page ka object ie.Page<User> ie. Page object of type User
         Page<User> page = userRepository.findAll(pageable);
-        List<User> users = page.getContent();
-//        List<User> users = userRepository.findAll();
-        List<UserDto> dtoList = users.stream().map(user -> entityToDto(user)).collect(Collectors.toList());
-        return dtoList;
+
+        // method ko hum page ka object denge aur wo hame pageable ka object return karega
+
+        // page.getContent() karenge to hame milegi list List<User>
+//        List<User> users = page.getContent();
+//        List<UserDto> dtoList = users.stream().map(user -> entityToDto(user)).collect(Collectors.toList());
+//        PageableResponse<UserDto> response = new PageableResponse<>();
+//        response.setContent(dtoList);
+//        response.setPageNumber(page.getNumber());
+//        response.setPageSize(page.getSize());
+//        response.setTotalElements(page.getTotalElements());
+//        response.setTotalPages(page.getTotalPages());
+//        response.setLastPage(page.isLast());
+
+        PageableResponse<UserDto> response = Helper.getPageableResponse(page, UserDto.class);
+
+        return response;
     }
 
     @Override
